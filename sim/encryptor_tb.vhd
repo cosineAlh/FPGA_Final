@@ -1,6 +1,6 @@
 --------------------------------------------
 
--- testbench of decryptor
+-- testbench of encryptor
 
 --------------------------------------------
 library IEEE;
@@ -9,14 +9,15 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use STD.TEXTIO.ALL;
 use IEEE.STD_LOGIC_TEXTIO.ALL;
 
-entity decryptor_tb is
-    generic(N128:integer:=128;
+entity encryptor_tb is
+    generic(
+            N128:integer:=128;
             N192:integer:=192;
             N256:integer:=256);
-end decryptor_tb;
+end encryptor_tb;
 
-architecture Behavioral of decryptor_tb is
-    component AESDecryptor
+architecture Behavioral of encryptor_tb is
+    component AESEncryptor
         generic(N:integer);
         Port(
             CLK: in STD_LOGIC;
@@ -28,10 +29,10 @@ architecture Behavioral of decryptor_tb is
         );
     end component;
 
-    signal CLK128: STD_LOGIC:='0';-----clock 
+    signal CLK128: STD_LOGIC:='0';----clock
     signal CLK192: STD_LOGIC:='0';
     signal CLK256: STD_LOGIC:='0';
-    signal RST128: STD_LOGIC:='0';-----reset
+    signal RST128: STD_LOGIC:='0';----reset
     signal RST192: STD_LOGIC:='0';
     signal RST256: STD_LOGIC:='0';
     signal DONE128: STD_LOGIC:='0';----done
@@ -43,7 +44,7 @@ architecture Behavioral of decryptor_tb is
     signal OUTPUT_TEX192: STD_LOGIC_VECTOR(127 downto 0):=(others=>'0');
     signal INPUT_TEX256: STD_LOGIC_VECTOR(127 downto 0):=(others=>'0');
     signal OUTPUT_TEX256: STD_LOGIC_VECTOR(127 downto 0):=(others=>'0');
-    signal KEY128: STD_LOGIC_VECTOR(N128-1 downto 0):=(others=>'0');----key
+    signal KEY128: STD_LOGIC_VECTOR(N128-1 downto 0):=(others=>'0');
     signal KEY192: STD_LOGIC_VECTOR(N192-1 downto 0):=(others=>'0');
     signal KEY256: STD_LOGIC_VECTOR(N256-1 downto 0):=(others=>'0');
     signal flag128:STD_LOGIC:='0';----process finished flag
@@ -54,18 +55,18 @@ architecture Behavioral of decryptor_tb is
     signal over256:STD_LOGIC:='0';
 
 begin
-    aes128: AESDecryptor generic map(N=>N128) port map(CLK=>CLK128,RST=>RST128,DONE=>DONE128,INPUT_TEX=>INPUT_TEX128,OUTPUT_TEX=>OUTPUT_TEX128,KEY=>KEY128);
-    aes192: AESDecryptor generic map(N=>N192) port map(CLK=>CLK192,RST=>RST192,DONE=>DONE192,INPUT_TEX=>INPUT_TEX192,OUTPUT_TEX=>OUTPUT_TEX192,KEY=>KEY192);
-    aes256: AESDecryptor generic map(N=>N256) port map(CLK=>CLK256,RST=>RST256,DONE=>DONE256,INPUT_TEX=>INPUT_TEX256,OUTPUT_TEX=>OUTPUT_TEX256,KEY=>KEY256);
+    aes128: AESEncryptor generic map(N=>N128) port map(CLK=>CLK128,RST=>RST128,DONE=>DONE128,INPUT_TEX=>INPUT_TEX128,OUTPUT_TEX=>OUTPUT_TEX128,KEY=>KEY128);
+    aes192: AESEncryptor generic map(N=>N192) port map(CLK=>CLK192,RST=>RST192,DONE=>DONE192,INPUT_TEX=>INPUT_TEX192,OUTPUT_TEX=>OUTPUT_TEX192,KEY=>KEY192);
+    aes256: AESEncryptor generic map(N=>N256) port map(CLK=>CLK256,RST=>RST256,DONE=>DONE256,INPUT_TEX=>INPUT_TEX256,OUTPUT_TEX=>OUTPUT_TEX256,KEY=>KEY256);
 
     clk128_generator:process
     begin
-        while flag128='0'loop----when process is over, clock stop
-	     CLK128<='1';
-	     wait for 5 ns;
-	     CLK128<='0';
-	     wait for 5 ns;
-        end loop;
+	while flag128='0'loop----when process is over, clock stop
+            CLK128<='1';
+            wait for 5 ns;
+            CLK128<='0';
+            wait for 5 ns;
+	end loop;
 	wait;----stop and wait for other processes
     end process;
     
@@ -92,8 +93,8 @@ begin
     end process;
 
     --------------128 bits----------------
-    process-----read
-        file F1: TEXT open READ_MODE is "./sim/input_128D.txt";
+    process---read
+        file F1: TEXT open READ_MODE is "./sim/input_128.txt";
         variable r1: LINE;
         variable Plain128: STD_LOGIC_VECTOR(127 downto 0);
         variable INPUT_KEY128: STD_LOGIC_VECTOR(N128-1 downto 0);
@@ -111,15 +112,14 @@ begin
             wait for 10 ns;
             RST128<='1';
             wait until DONE128='1';------wait for done
-            wait for 10 ns;
         end loop;
         flag128<='1';-----when read over, process finished flag is up
         file_close(F1);---close file
         wait;---waiting for other processes
     end process;
     
-    process----write
-        file O1: TEXT open WRITE_MODE is "./sim/output_128D.txt";
+    process---write
+        file O1: TEXT open WRITE_MODE is "./sim/output_128.txt";
         variable w1: LINE;
     begin
         wait until rising_edge(CLK128);
@@ -131,12 +131,12 @@ begin
         end loop;
         file_close(O1);---close file
 	over128<='1';
-        wait;----waiting for other processes
-    end process;     
+        wait;---waiting for other processes
+    end process;    
     
     ------------192 bits---------------------
     process
-        file F2: TEXT open READ_MODE is "./sim/input_192D.txt";
+        file F2: TEXT open READ_MODE is "./sim/input_192.txt";
         variable r2: LINE;
         variable Plain192: STD_LOGIC_VECTOR(127 downto 0);
         variable INPUT_KEY192: STD_LOGIC_VECTOR(N192-1 downto 0);
@@ -154,7 +154,6 @@ begin
             wait for 10 ns;
             RST192<='1'; 
             wait until DONE192='1';
-            wait for 10 ns;
         end loop;
         file_close(F2);
         flag192<='1';
@@ -162,7 +161,7 @@ begin
     end process;
     
     process
-        file O2: TEXT open WRITE_MODE is "./sim/output_192D.txt";
+        file O2: TEXT open WRITE_MODE is "./sim/output_192.txt";
         variable w2: LINE;
     begin
         wait until rising_edge(CLK192);
@@ -179,7 +178,7 @@ begin
     
     -------------256 bits-------------------------
     process
-        file F3: TEXT open READ_MODE is "./sim/input_256D.txt";
+        file F3: TEXT open READ_MODE is "./sim/input_256.txt";
         variable r3: LINE;
         variable Plain256: STD_LOGIC_VECTOR(127 downto 0);
         variable INPUT_KEY256: STD_LOGIC_VECTOR(N256-1 downto 0);
@@ -197,7 +196,6 @@ begin
             wait for 10 ns;
             RST256<='1';
             wait until DONE256='1';
-            wait for 10 ns;
         end loop;
         file_close(F3);
         flag256<='1';
@@ -205,7 +203,7 @@ begin
     end process;
     
     process
-        file O3: TEXT open WRITE_MODE is "./sim/output_256D.txt";
+        file O3: TEXT open WRITE_MODE is "./sim/output_256.txt";
         variable w3: LINE;
     begin
         wait until rising_edge(CLK256);
@@ -220,7 +218,7 @@ begin
         wait;
 	--std.env.finish;
     end process; 
-
+    
     ------------check if all the process end----------------
     process(over128,over192,over256)
     begin
